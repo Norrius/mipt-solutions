@@ -13,15 +13,14 @@ unsigned long mtime()
 }
 #endif
 
-unsigned long time_elapsed()
+Clock::Clock()
 {
-    static unsigned long t = 0;
-    if (!t) {
-        t = mtime();
-        return 0;
-    } else {
-        unsigned long e = mtime() - t;
-        t += e;
-        return e;
-    }
+    t = mtime();
+}
+
+unsigned long Clock::elapsed()
+{
+    unsigned long e = mtime() - t;
+    t += e;
+    return e;
 }

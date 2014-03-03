@@ -6,13 +6,17 @@
 #define TIME_H
 #include <cstddef>
 #ifdef _WIN32
-#include <winbase.h>
+#include <windows.h>
 unsigned long mtime();
 #else
 #include <sys/time.h>
 unsigned long mtime();
 unsigned long utime();
 #endif
-
-unsigned long time_elapsed();
+class Clock {
+    unsigned long t;
+public:
+    Clock();
+    unsigned long elapsed();
+};
 #endif
