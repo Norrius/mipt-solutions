@@ -7,12 +7,10 @@
 #include <cstddef>
 #ifdef _WIN32
 #include <windows.h>
-unsigned long mtime();
 #else
 #include <sys/time.h>
-unsigned long mtime();
-unsigned long utime();
 #endif
+unsigned long mtime();
 class Clock {
     unsigned long t;
 public:
