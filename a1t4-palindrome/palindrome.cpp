@@ -1,5 +1,4 @@
 #include "palindrome.h"
-#include <iostream>
 
 std::string palindrome(std::string s) {
     size_t n = s.length();
