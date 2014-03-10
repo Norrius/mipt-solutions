@@ -2,55 +2,47 @@
 
 namespace ns_lissq {
 
-struct extended_array {
-    int *a;
+struct extended_vector {
+    const std::vector<int> *a;
 
-    extended_array(int *a)
+    extended_vector(const std::vector<int> *a)
     : a(a)
     {}
 
-    int operator[](size_t n) {
+    const int operator[](size_t n) const {
         if (n == neg_inf) {
             return neg_inf;
         } else if (n == inf) {
             return inf;
         } else {
-            return a[n];
+            return (*a)[n];
         }
     }
 };
 
-int upper_bound(extended_array &a, int *d, int n, int x) {
-    int l = 0;
-    int r = n-1;
-    int m;
-    while (l<r) {
-        m = l+(r-l)/2;
-        if (x >= a[d[m]]) {
-            l = m+1;
-        } else {
-            r = m;
-        }
+class Comparator {
+    const extended_vector *a;
+public:
+    Comparator(const extended_vector *a)
+        : a(a) {}
+    bool operator()(const int &x, const int &i) {
+        return x<(*a)[i];
     }
-    return l;
-}
+};
 }
 
-std::list<int> lissq(int *data, size_t n) {
+void lissq(const std::vector<int> &data, std::list<int> &lis) {
     using namespace ns_lissq;
-    extended_array a(data);
-    int *d = new int[n+1];
-    int *p = new int[n];
-    int max = 0;
+    extended_vector a(&data);
+    size_t n = data.size();
+    std::vector<int> d(n+1, inf);
     d[0] = neg_inf;
-    for (size_t i=1; i<=n; ++i) {
-        d[i] = inf;
-    }
+    std::vector<int> p(n, neg_inf);
+    int max = 0;
+    Comparator comparator(&a);
+
     for (size_t i=0; i<n; ++i) {
-        p[i] = neg_inf;
-    }
-    for (size_t i=0; i<n; ++i) {
-        int j = upper_bound(a, d, n+1, a[i]);
+        int j = std::upper_bound(d.begin(), d.end(), a[i], comparator)-d.begin();
         if (a[d[j-1]] < a[i] && a[i] < a[d[j]]) {
             d[j] = i;
             p[i] = d[j-1];
@@ -60,10 +52,9 @@ std::list<int> lissq(int *data, size_t n) {
         }
     }
 
-    std::list<int> subsequence;
+    lis.clear();
     for (int i = d[max]; i != neg_inf; i = p[i]){
-        subsequence.push_front(a[i]);
+        lis.push_front(a[i]);
     }
-    return subsequence;
 }
 

@@ -6,12 +6,14 @@ using namespace std;
 int main() {
     size_t n;
     cin >> n;
-    int a[n];
-    for (size_t i=0; i<n; ++i) cin >> a[i];
+    std::vector<int> data(n);
+    for (size_t i=0; i<n; ++i) cin >> data[i];
 
-    list<int> v = lissq(a, n);
+    list<int> lis;
 
-    for (auto i : v) cout << i << ' ';
+    lissq(data, lis);
+
+    for (auto i : lis) cout << i << ' ';
     cout << endl;
     return 0;
 }

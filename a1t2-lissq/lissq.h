@@ -7,14 +7,13 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
-#include <iostream>
 
 namespace ns_lissq {
 const int neg_inf = std::numeric_limits<int>::min();
 const int inf = std::numeric_limits<int>::max();
 
-struct extended_array;
-int upper_bound(extended_array &a, int *d, int n, int x);
+struct extended_vector;
+int upper_bound(extended_vector &a, std::vector<int> d, int n, int x);
 }
 
-std::list<int> lissq(int *data, size_t n);
+void lissq(const std::vector<int> &data, std::list<int> &lis);
