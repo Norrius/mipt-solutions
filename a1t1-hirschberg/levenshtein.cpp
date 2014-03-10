@@ -8,15 +8,15 @@ T min(T a, T b, T c)
 
 // --- Levenshein distance, two columns (Wagner-Fischer) ---
 
-int levenshtein_distance(std::string s, std::string t)
+int levenshtein_distance(const std::string &s, const std::string &t)
 {
     size_t n = s.length();
     size_t m = t.length();
     if (n == 0) return m;
     if (m == 0) return n;
-    int **d = new int*[2];
-    for (size_t i=0; i<2; ++i)
-        d[i] = new int[m+1];
+    std::vector<std::vector<int> > d = {   // two-column matrix for first substring of string s
+        std::vector<int>(m+1),
+        std::vector<int>(m+1) };
 
     for (size_t i=0; i<n+1; ++i) {
         for (size_t j=0; j<m+1; ++j) {
@@ -34,15 +34,12 @@ int levenshtein_distance(std::string s, std::string t)
         }
     }
     int r = d[n%2][m];
-    delete[] d[0];
-    delete[] d[1];
-    delete[] d;
     return r;
 }
 
 // --- Hirschberg algorithm ---
 
-std::string hirschberg(std::string s, size_t l, size_t r, std::string t, size_t x, size_t y)
+std::string hirschberg(const std::string &s, size_t l, size_t r, const std::string &t, size_t x, size_t y)
 {
     if (r-l+1 == 0) {
         std::string prescr;
@@ -96,11 +93,10 @@ std::string hirschberg(std::string s, size_t l, size_t r, std::string t, size_t 
     size_t c = l+(r-l)/2;   // point of spliting string s into two substrings
     size_t m = y-x+1;       // length of current substring of string t
                             // (x-1) - shift of current substring of t
-    
-    // left part
-    int **dl = new int*[2];     // two-column matrix for first substring of string s
-    for (size_t i=0; i<2; ++i)
-        dl[i] = new int[m+1];
+
+    std::vector<std::vector<int> > dl = {   // two-column matrix for first substring of string s
+        std::vector<int>(m+1),
+        std::vector<int>(m+1) };
 
     for (size_t i=l-1; i<=c; ++i) {
         for (size_t j=0; j<m+1; ++j) {
@@ -118,10 +114,9 @@ std::string hirschberg(std::string s, size_t l, size_t r, std::string t, size_t 
         }
     }
 
-    // right part
-    int **dr = new int*[2];     // two-column matrix for second substring of string s
-    for (size_t i=0; i<2; ++i)
-        dr[i] = new int[m+1];
+    std::vector<std::vector<int> > dr = {   // two-column matrix for second substring of string s
+        std::vector<int>(m+1),
+        std::vector<int>(m+1) };
 
     for (size_t i=r+1; i>c; --i) {
         for (int j=m; j>=0; --j) {
@@ -147,13 +142,6 @@ std::string hirschberg(std::string s, size_t l, size_t r, std::string t, size_t 
     }
     split = split + x - 1; // actual index (in terms of strings) is shifted
 
-    delete[] dl[0];
-    delete[] dl[1];
-    delete[] dl;
-    delete[] dr[0];
-    delete[] dr[1];
-    delete[] dr;
-
     /* ~~~ Debug ~~~
     std::cerr << "============\nSplitting to\n";
     for (size_t i=l-1; i<c; ++i) std::cerr << s[i];
@@ -168,7 +156,7 @@ std::string hirschberg(std::string s, size_t l, size_t r, std::string t, size_t 
     return hirschberg(s, l, c, t, x, split) + hirschberg(s, c+1, r, t, split+1, y);
 }
 
-int hirschberg_d(std::string s, size_t l, size_t r, std::string t, size_t x, size_t y)
+int hirschberg_d(const std::string &s, size_t l, size_t r, const std::string &t, size_t x, size_t y)
 {
     if (r-l+1 == 0) {
         return y-x+1;
@@ -204,9 +192,9 @@ int hirschberg_d(std::string s, size_t l, size_t r, std::string t, size_t x, siz
                             // (x-1) - shift of current substring of t
 
     // left part
-    int **dl = new int*[2];     // two-column matrix for first substring of string s
-    for (size_t i=0; i<2; ++i)
-        dl[i] = new int[m+1];
+    std::vector<std::vector<int> > dl = {   // two-column matrix for first substring of string s
+        std::vector<int>(m+1),
+        std::vector<int>(m+1) };
 
     for (size_t i=l-1; i<=c; ++i) {
         for (size_t j=0; j<m+1; ++j) {
@@ -225,9 +213,9 @@ int hirschberg_d(std::string s, size_t l, size_t r, std::string t, size_t x, siz
     }
 
     // right part
-    int **dr = new int*[2];     // two-column matrix for second substring of string s
-    for (size_t i=0; i<2; ++i)
-        dr[i] = new int[m+1];
+    std::vector<std::vector<int> > dr = {   // two-column matrix for second substring of string s
+        std::vector<int>(m+1),
+        std::vector<int>(m+1) };
 
     for (size_t i=r+1; i>c; --i) {
         for (int j=m; j>=0; --j) {
@@ -253,22 +241,15 @@ int hirschberg_d(std::string s, size_t l, size_t r, std::string t, size_t x, siz
     }
     split = split + x - 1; // actual index (in terms of strings) is shifted
 
-    delete[] dl[0];
-    delete[] dl[1];
-    delete[] dl;
-    delete[] dr[0];
-    delete[] dr[1];
-    delete[] dr;
-
     return hirschberg_d(s, l, c, t, x, split) + hirschberg_d(s, c+1, r, t, split+1, y);
 }
 
-std::string prescription(std::string s, std::string t)
+std::string prescription(const std::string &s, const std::string &t)
 {
     return hirschberg(s, 1, s.length(), t, 1, t.length());
 }
 
-size_t hirschberg_distance(std::string s, std::string t)
+size_t hirschberg_distance(const std::string &s, const std::string &t)
 {
     return hirschberg_d(s, 1, s.length(), t, 1, t.length());
 }
