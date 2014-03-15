@@ -4,10 +4,11 @@
 using namespace std;
 
 int main() {
-    size_t n;
-    cin >> n;
-    std::vector<int> data(n);
-    for (size_t i=0; i<n; ++i) cin >> data[i];
+    int t;
+    std::vector<int> data;
+    while (cin >> t) {
+        data.push_back(t);
+    }
 
     list<int> lis;
 
