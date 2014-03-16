@@ -3,10 +3,15 @@
 std::string palindrome(std::string s) {
     size_t n = s.length();
 
-    int **d = new int*[n]; // main array: d[i][j] = max len of palindrome in s[i:j+1]
-    for (size_t i=0; i<n; ++i) d[i] = new int[i+1];
-    int **t = new int*[n]; // transition array: -1 for top, 1 for right, 0 for diagonal (match)
-    for (size_t i=0; i<n; ++i) t[i] = new int[i+1];
+    if (!n) return s;
+
+    // main array: d[i][j] = max len of palindrome in s[i:j+1]
+    std::vector<std::vector<int> > d(n, std::vector<int>(n));
+    // transition array: -1 for top, 1 for right, 0 for diagonal (match)
+    std::vector<std::vector<int> > t(n, std::vector<int>());
+    for (std::vector<std::vector<int> >::iterator i=t.begin(); i!=t.end(); ++i) {
+        *i = std::vector<int>(i-t.begin()+1);
+    }
 
     for (size_t i=0; i<n; ++i) {
         for (size_t j=0; j<n-i; ++j) {
@@ -39,7 +44,7 @@ std::string palindrome(std::string s) {
 
     std::string palindrome;
 
-    for (size_t i=n-1, j=0; j<=i; )
+    for (int i=n-1, j=0; j<=i; )
         switch (t[i][j]) {
         case 0:
             palindrome.insert(palindrome.length()/2, (i==j?d[i][j]:2), s[i]);
@@ -48,9 +53,6 @@ std::string palindrome(std::string s) {
         case -1: --i; break;
         case  1: ++j; break;
     }
-
-    for (size_t i=0; i<n; ++i) delete d[i]; delete d;
-    for (size_t i=0; i<n; ++i) delete t[i]; delete t;
 
     return palindrome;
 }
