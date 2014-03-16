@@ -4,7 +4,7 @@
 using namespace std;
 
 int main() {
-    HashTable table;
+    HashTable table(1);
 
 /**/cout << "add and display size" << endl;
     cout << "size: " << table.size() << endl;

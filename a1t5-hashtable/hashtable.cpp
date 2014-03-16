@@ -9,10 +9,6 @@ Basket::Basket(t_hash index, const std::string &key, const std::string &value)
     ,entries(std::list<std::pair<std::string, std::string> >(1,std::pair<std::string, std::string>(key, value)))
 {}
 
-bool operator==(const Basket &l, const Basket &r)
-{
-    return l.index == r.index;
-}
 bool operator==(const Basket &list, const t_hash &h)
 { // required to use std::find
     return list.index == h;
@@ -20,15 +16,21 @@ bool operator==(const Basket &list, const t_hash &h)
 
 // = = = = = HashTable = = = = =
 
-HashTable::HashTable()
-    :size_(0)
-{}
+HashTable::HashTable(size_t basket_count)
+    :table_(basket_count)
+    ,size_(0)
+    ,basket_count_(basket_count)
+{
+    for (std::vector<Basket>::iterator it = table_.begin(); it != table_.end(); ++it) {
+        it->index = it-table_.begin();
+    }
+}
 
 HashTable::~HashTable(){}
 
 t_hash HashTable::hash(const std::string &value)
 {
-    return value.length();
+    return value.length()%(basket_count_?basket_count_:1);
 }
 
 size_t HashTable::size()
@@ -43,39 +45,34 @@ bool HashTable::empty()
 bool HashTable::insert(const std::string &key, const std::string &value)
 {
     t_hash h = hash(key);
-    std::vector<Basket>::iterator it_v = std::find(table_.begin(), table_.end(), h);
-    if (it_v != table_.end()) {
-        std::list<std::pair<std::string, std::string> >::iterator it_l;
-        for (it_l = it_v->entries.begin(); it_l != it_v->entries.end(); ++it_l) {
-            if (it_l->first == key) {
-                return false;
-            }
+    std::vector<Basket>::iterator it_v = table_.begin() + h;
+    std::list<std::pair<std::string, std::string> >::iterator it_l;
+    for (it_l = it_v->entries.begin(); it_l != it_v->entries.end(); ++it_l) {
+        if (it_l->first == key) {
+            return false;
         }
-        (*it_v).entries.push_back(std::pair<std::string, std::string>(key, value));
-        ++size_;
-        return true;
-    } else {
-        table_.push_back(Basket(h, key, value));
-        ++size_;
-        return true;
     }
+    it_v->entries.push_back(std::pair<std::string, std::string>(key, value));
+    ++size_;
+
+    if (size_ > 4*basket_count_) {
+        realloc();
+    }
+
+    return true;
 }
 
 HashTable::iterator HashTable::find(const std::string &key)
 {
     t_hash h = hash(key);
-    std::vector<Basket>::iterator it_v = std::find(table_.begin(), table_.end(), h);
-    if (it_v != table_.end()) {
-        std::list<std::pair<std::string, std::string> >::iterator it_l;
-        for (it_l = it_v->entries.begin(); it_l != it_v->entries.end(); ++it_l) {
-            if (it_l->first == key) {
-                return HashTable::iterator(it_v, it_l);
-            }
+    std::vector<Basket>::iterator it_v = table_.begin() + h;
+    std::list<std::pair<std::string, std::string> >::iterator it_l;
+    for (it_l = it_v->entries.begin(); it_l != it_v->entries.end(); ++it_l) {
+        if (it_l->first == key) {
+            return HashTable::iterator(*this, it_v, it_l);
         }
-        return end();
-    } else {
-        return end();
     }
+    return end();
 }
 
 std::string &HashTable::operator[](const std::string &key)
@@ -86,21 +83,19 @@ std::string &HashTable::operator[](const std::string &key)
 bool HashTable::erase(const std::string &key)
 {
     t_hash h = hash(key);
-    std::vector<Basket>::iterator it_v = std::find(table_.begin(), table_.end(), h);
+    std::vector<Basket>::iterator it_v = table_.begin() + h;
     std::list<std::pair<std::string, std::string> >::iterator it_l;
     bool found = false;
-    if (it_v != table_.end()) {
-        for (it_l = it_v->entries.begin(); it_l != it_v->entries.end(); ++it_l) {
-            if (it_l->first == key) {
-                found = true;
-                break;
-            }
+
+    for (it_l = it_v->entries.begin(); it_l != it_v->entries.end(); ++it_l) {
+        if (it_l->first == key) {
+            found = true;
+            break;
         }
-        if (!found) return false;
-    } else {
-        return false;
     }
-    assert(HashTable::iterator(it_v, it_l) != end());
+    if (!found) return false;
+
+    assert(HashTable::iterator(*this, it_v, it_l) != end());
     it_v->entries.erase(it_l);
     if (it_v->entries.empty()) {
         table_.erase(it_v);
@@ -109,34 +104,62 @@ bool HashTable::erase(const std::string &key)
     return true;
 }
 
+void HashTable::realloc()
+{
+    ++basket_count_;
+    std::vector<Basket> table__(basket_count_);
+    std::swap(table_, table__);
+    size_ = 0;
+    std::vector<Basket>::iterator it_v;
+    std::list<std::pair<std::string, std::string> >::iterator it_l;
+    for (std::vector<Basket>::iterator it = table_.begin(); it != table_.end(); ++it) {
+        it->index = it-table_.begin();
+    }
+
+    for (it_v = table__.begin(), it_l = it_v->entries.begin(); it_v != table__.end(); ) {
+        insert(it_l->first, it_l->second);
+        // increment
+        ++it_l;
+        while (it_l == it_v->entries.end() && it_v != table__.end()) {
+            ++it_v;
+            it_l = it_v->entries.begin();
+        }
+    }
+}
+
 // = = = HashTable::iterator = = =
 
 HashTable::iterator HashTable::begin()
 {
-    return HashTable::iterator(table_.begin(), table_.begin()->entries.begin());
+    std::vector<Basket>::iterator it_v;
+    std::list<std::pair<std::string, std::string> >::iterator it_l;
+    it_v = table_.begin();
+    it_l = it_v->entries.begin();
+    while (it_l == it_v->entries.end() && it_v != table_.end()) {
+        ++it_v;
+        it_l = it_v->entries.begin();
+    }
+    return HashTable::iterator(*this, it_v, it_l);
 }
 
 HashTable::iterator HashTable::end()
 {
-    return HashTable::iterator(table_.end(), table_.end()->entries.begin());
+    return HashTable::iterator(*this, table_.end(), table_.end()->entries.begin());
 }
 
-
-HashTable::iterator::iterator(const std::vector<Basket>::iterator it_v,
+HashTable::iterator::iterator(const HashTable &parent,
+                              const std::vector<Basket>::iterator it_v,
                               const std::list<std::pair<std::string, std::string> >::iterator it_l)
-    :it_v_(it_v)
+    :parent_(parent)
+    ,it_v_(it_v)
     ,it_l_(it_l)
 {}
 
 HashTable::iterator &HashTable::iterator::operator++()
 { // prefix
-    if (it_l_ != it_v_->entries.end()) {
-        ++it_l_;
-        if (it_l_ == it_v_->entries.end()) {
-            ++it_v_;
-            it_l_ = it_v_->entries.begin();
-        }
-    } else {
+    // it's user's concern if the iterator was already at .end()
+    ++it_l_;
+    while (it_l_ == it_v_->entries.end() && it_v_ != parent_.table_.end()) {
         ++it_v_;
         it_l_ = it_v_->entries.begin();
     }
@@ -154,9 +177,11 @@ HashTable::iterator &HashTable::iterator::operator--()
 { // prefix
     if (it_l_ != it_v_->entries.begin()) {
         --it_l_;
-    } else {
-        --it_v_;
-        it_l_ = it_v_->entries.end();
+    } else { // once again, it's user's concern if they decide to use -- on .begin()
+        while (it_l_ == it_v_->entries.begin() && it_v_ != parent_.table_.begin()) {
+            --it_v_;
+            it_l_ = it_v_->entries.end();
+        }
         --it_l_;
     }
     return *this;
@@ -185,6 +210,11 @@ std::string *HashTable::iterator::operator->()
 const std::string *HashTable::iterator::operator->() const
 {
     return &it_l_->second;
+}
+
+std::string &HashTable::iterator::getKey()
+{
+    return it_l_->first;
 }
 
 bool operator==(const HashTable::iterator& l, const HashTable::iterator& r)
