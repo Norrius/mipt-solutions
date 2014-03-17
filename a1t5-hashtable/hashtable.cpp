@@ -144,7 +144,16 @@ HashTable::iterator HashTable::begin()
 
 HashTable::iterator HashTable::end()
 {
-    return HashTable::iterator(*this, table_.end(), table_.end()->entries.begin());
+    std::vector<Basket>::iterator it_v;
+    std::list<std::pair<std::string, std::string> >::iterator it_l;
+    it_v = table_.end();
+    --it_v;
+    it_l = it_v->entries.end();
+    while (it_l == it_v->entries.begin() && it_v != table_.begin()) {
+        --it_v;
+        it_l = it_v->entries.end();
+    }
+    return HashTable::iterator(*this, it_v, it_l);
 }
 
 HashTable::iterator::iterator(const HashTable &parent,
@@ -159,7 +168,8 @@ HashTable::iterator &HashTable::iterator::operator++()
 { // prefix
     // it's user's concern if the iterator was already at .end()
     ++it_l_;
-    while (it_l_ == it_v_->entries.end() && it_v_ != parent_.table_.end()) {
+    std::vector<Basket>::const_iterator last = parent_.table_.end(); --last;
+    while (it_l_ == it_v_->entries.end() && it_v_ != last) {
         ++it_v_;
         it_l_ = it_v_->entries.begin();
     }
