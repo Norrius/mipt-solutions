@@ -1,7 +1,7 @@
 #include "graph.h"
 
 Graph::Graph(size_t size) :
-    arcs_(size)
+    arcs_(size+1)
 {}
 
 Graph::Graph(const Graph &other) :

@@ -3,7 +3,11 @@
 #include <vector>
 #include <list>
 
-//typedef size_t vertex_t;
+enum vertex_colour {
+    white,
+    gray,
+    black
+};
 
 struct Graph
 {

@@ -1,16 +1,6 @@
-#include <cstddef>
-#include <vector>
-#include <stack>
-#include <iostream> /*DEBUG*/
-#include "graph.h"
+#include "condensation.h"
 
-using namespace std;
-
-enum vertex_colour {
-    white,
-    gray,
-    black
-};
+// = = = Kosaraju = = =
 
 int condensation_kosaraju(Graph &g, vector<int> &condensation) {
 
@@ -88,5 +78,63 @@ int condensation_kosaraju(Graph &g, vector<int> &condensation) {
             }
         }
     }
+    return component_count;
+}
+
+// = = = = Tarjan = = = =
+
+stack<int> cond_stack;
+vector<int> visited;
+vector<int> lowlink;
+size_t t_in;
+size_t component_count;
+
+void tarjan_dfs(Graph &g, int v, vector<int> &condensation) {
+    visited[v] = gray;
+    lowlink[v] = t_in++;
+    cond_stack.push(v);
+    bool root = true;
+
+    for (list<size_t>::iterator child = g.arcs_[v].begin(); child != g.arcs_[v].end(); ++child) {
+        if (!visited[*child]) {
+            tarjan_dfs(g, *child, condensation);
+        }
+        if (lowlink[v] > lowlink[*child]) {
+            lowlink[v] = lowlink[*child];
+            root = false;
+        }
+    }
+
+    if (root) {
+        ++component_count;
+//        condensation[v] = component_count;
+//        lowlink[v] = g.arcs_.size();
+        int u;
+        do {
+            u = cond_stack.top();
+            condensation[u] = component_count;
+            lowlink[u] = g.arcs_.size(); // a.k.a. "the very big number"
+            cond_stack.pop();
+        } while (u != v);
+    }
+
+    visited[v] = black;
+}
+
+int condensation_tarjan(Graph &graph, vector<int> &condensation) {
+    cond_stack.empty();
+    condensation = vector<int>(graph.arcs_.size(), 0);
+    visited = vector<int>(graph.arcs_.size(), white);
+    lowlink = vector<int>(graph.arcs_.size(), 0);
+    component_count = 0;
+    t_in = 0;
+
+    // start a dfs
+    for (size_t vertex=1; vertex < graph.arcs_.size(); ++vertex) {
+        if (!visited[vertex]) {
+            tarjan_dfs(graph, vertex, condensation);
+        }
+    }
+
     return component_count;
 }
