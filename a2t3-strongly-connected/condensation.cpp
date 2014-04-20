@@ -83,13 +83,17 @@ int condensation_kosaraju(Graph &g, vector<int> &condensation) {
 
 // = = = = Tarjan = = = =
 
-stack<int> cond_stack;
-vector<int> visited;
-vector<int> lowlink;
-size_t t_in;
-size_t component_count;
+namespace ns_cond_tarjan {
+    stack<int> cond_stack;
+    vector<int> visited;
+    vector<int> lowlink;
+    size_t t_in;
+    size_t component_count;
+}
 
 void tarjan_dfs(Graph &g, int v, vector<int> &condensation) {
+    using namespace ns_cond_tarjan;
+
     visited[v] = gray;
     lowlink[v] = t_in++;
     cond_stack.push(v);
@@ -122,6 +126,8 @@ void tarjan_dfs(Graph &g, int v, vector<int> &condensation) {
 }
 
 int condensation_tarjan(Graph &graph, vector<int> &condensation) {
+    using namespace ns_cond_tarjan;
+
     cond_stack.empty();
     condensation = vector<int>(graph.arcs_.size(), 0);
     visited = vector<int>(graph.arcs_.size(), white);
