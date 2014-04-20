@@ -7,10 +7,14 @@
 
 struct Graph
 {
+    std::vector<std::list<size_t> > arcs_;
 
 public:
-    std::vector<std::list<size_t> > arcs_;
     Graph(size_t size=0);
+    Graph(const Graph &other);
+
+    size_t size();
 
     void addArc(size_t a, size_t b);
+    Graph getInverted();
 };
