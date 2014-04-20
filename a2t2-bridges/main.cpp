@@ -4,9 +4,11 @@
 #include <vector>
 #include "graph.h"
 #include "bridges.h"
+#include "test.h"
 
 using namespace std;
 
+#ifdef MANUAL
 void test_bridges() {
     int n, m, x, y;
     cin >> n >> m;
@@ -48,9 +50,14 @@ void test_div_points() {
     }
     cout << endl;
 }
+#endif
 
 int main() {
+#ifdef MANUAL
     test_div_points();
+#else
+    test();
+#endif
 
     return 0;
 }

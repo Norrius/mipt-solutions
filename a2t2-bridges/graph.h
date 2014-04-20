@@ -5,6 +5,12 @@
 
 //typedef size_t vertex_t;
 
+enum vertex_colour {
+    white,
+    gray,
+    black
+};
+
 struct edge
 {
     edge(int from, int to);

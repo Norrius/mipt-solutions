@@ -37,3 +37,14 @@ void Graph::addEdge(size_t a, size_t b)
     addArc(a, b);
     addArc(b, a);
 }
+
+Graph Graph::getInverted()
+{
+    Graph inverted(arcs_.size());
+    for (std::vector<std::list<size_t> >::iterator it = arcs_.begin(); it != arcs_.end(); ++it) {
+        for (std::list<size_t>::iterator jt = it->begin(); jt != it->end(); ++jt) {
+            inverted.arcs_[*jt].push_back(it-arcs_.begin());
+        }
+    }
+    return inverted;
+}
