@@ -7,7 +7,7 @@
 #include "bridges.h"
 #include "condensation.h"
 
-//#define MANUAL
+#define MANUAL
 #ifndef MANUAL
 void test();
 #endif

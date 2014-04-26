@@ -50,11 +50,29 @@ void test_div_points() {
     }
     cout << endl;
 }
+
+void test_biconnected_edges() {
+    int n, m, x, y;
+    cin >> n >> m;
+    Graph g(n);
+    for (int i=0; i<m; ++i) {
+        cin >> x >> y;
+        g.addEdge(x, y);
+    }
+
+    vector<int> components;
+    findBiconnectedEdgeComponents(g, components);
+
+    for (int i=1; i<=n; ++i) {
+        cout << components[i] << ' ';
+    }
+    cout << endl;
+}
 #endif
 
 int main() {
 #ifdef MANUAL
-    test_div_points();
+    test_biconnected_edges();
 #else
     test();
 #endif

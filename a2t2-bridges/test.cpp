@@ -120,3 +120,7 @@ void test() {
 }
 
 #endif
+
+void test_biconn_edges() {
+    //
+}
