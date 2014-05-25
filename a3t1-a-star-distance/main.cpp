@@ -10,14 +10,16 @@ int main(int argc, char **argv)
     if (argc != 3) {
         return -1;
     }
-    ifstream fin1(argv[1]);
+    ifstream fin;
+    fin.open(argv[1]);
     string s;
-    getline(fin1, s, '\0');
-    fin1.close();
+    getline(fin, s, '\0');
+    fin.close();
 
-    ifstream fin2(argv[2]);
     string t;
-    getline(fin2, t, '\0');
+    fin.open(argv[2]);
+    getline(fin, t, '\0');
+    fin.close();
 
     s.insert(0, "\0");
     t.insert(0, "\0");

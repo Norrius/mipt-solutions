@@ -1,10 +1,5 @@
 #include "diff.h"
 
-template <typename T>
-T min(const T &a, const T &b, const T &c) {
-    return std::min(std::min(a, b), c);
-}
-
 class hasher {
 public:
     size_t operator()(const index_pair &index) const {
