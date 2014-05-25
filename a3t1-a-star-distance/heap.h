@@ -41,6 +41,7 @@ class heap {
         {}
     };
 
+public:
     vector<weighted_index> data;
     unordered_map<index_pair, node, Hash> data_ref;
 
@@ -50,13 +51,17 @@ public:
     size_t size() {
         return data.size();
     }
+    size_t ref_size() {
+        return data_ref.size();
+    }
 
     bool empty() {
         return data.empty();
     }
 
     bool push(const weighted_index &value) {
-        bool success = data_ref.insert( make_pair(value.first, node(data.size(), 1, true)) ).second;
+        int times = (value.first.i == 0 || value.first.j == 0) ? 0 : 2;
+        bool success = data_ref.insert( make_pair(value.first, node(data.size(), times, true)) ).second;
         if (success) {
             data.push_back(value);
             heapify_up(data.size()-1);
@@ -67,20 +72,20 @@ public:
     weighted_index pop(const string &s, const string &t) {
         weighted_index top = data.front();
         // find a corresponding entry in the reference
-        auto front = data_ref.find(data.front().first);
-        front->second.real = false;
+        auto front_it = data_ref.find(data.front().first);
+        front_it->second.real = false;
         // find an entry to swap with
-        auto back = data_ref.find(data.back().first);
+        auto back_it = data_ref.find(data.back().first);
 
         swap(data.front(), data.back());
-        swap(front->second.heap_index, back->second.heap_index);
+        swap(front_it->second.heap_index, back_it->second.heap_index);
         data.pop_back(); // extract min from heap
 
-        size_t i = front->first.i; // position in s
-        size_t j = front->first.j; // position in t
+        size_t i = front_it->first.i; // position in s
+        size_t j = front_it->first.j; // position in t
 
-        if (i == 0 || j == 0 || s[i] == t[j]) {
-            data_ref.erase(front); // on final pass, extract reference as well
+        if (s[i] == t[j] || front_it->second.counter == 0) {
+            data_ref.erase(front_it); // on final pass, extract reference as well
         }
 
         heapify_down(0);
@@ -140,24 +145,23 @@ public:
         }
     }
 
-    bool update(const weighted_index &suggested) {
+    void update(const weighted_index &suggested) {
         auto suggested_it = data_ref.find(suggested.first);
         if (suggested_it == data_ref.end()) {
             push(suggested);
-            return true;
+//            suggested_it = data_ref.find(suggested.first);
         } else {
-            ++suggested_it->second.counter;
+            --suggested_it->second.counter;
             if (suggested_it->second.real) {
-                // check if the suggested variat is better
+                // check if the suggested variant is better
                 if (data[suggested_it->second.heap_index].second > suggested.second) {
                     data[suggested_it->second.heap_index].second = suggested.second;
                     heapify_up(suggested_it->second.heap_index);
-                    return true;
-                } else {
-                    if (suggested_it->second.counter == 3) {
-//                        data_ref.erase(suggested_it);
-                    }
-                    return false;
+                }
+            } else {
+                assert(suggested_it->second.counter >= 0);
+                if (suggested_it->second.counter == 0) {
+                    data_ref.erase(suggested_it);
                 }
             }
         }
