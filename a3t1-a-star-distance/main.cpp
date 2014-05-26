@@ -21,8 +21,8 @@ int main(int argc, char **argv)
     getline(fin, t, '\0');
     fin.close();
 
-    s.insert(0, "\0");
-    t.insert(0, "\0");
+    s.insert(s.begin(), '\0');
+    t.insert(t.begin(), '\0');
 
     cout << edit_distance(s, t) << endl;
 
